@@ -5,7 +5,7 @@
 El skill se distribuye como repositorio Git. Para poder instalarlo desde un repo:
 
 ```
-https://github.com/{usuario}/branching-avanzado-skill
+https://github.com/yosnap/branching-avanzado-skill
 ```
 
 El repositorio debe contener la carpeta del skill directamente en su raíz:
@@ -28,7 +28,7 @@ El skill queda disponible en cualquier proyecto que use Claude Code.
 
 ```bash
 # Clonar directamente en el directorio de skills global
-git clone https://github.com/{usuario}/branching-avanzado-skill \
+git clone https://github.com/yosnap/branching-avanzado-skill \
   ~/.claude/skills/branching-avanzado
 ```
 
@@ -53,7 +53,7 @@ El skill solo aplica al proyecto actual. Útil para equipos con configuración e
 ```bash
 # Desde la raíz del proyecto
 mkdir -p .claude/skills
-git clone https://github.com/{usuario}/branching-avanzado-skill \
+git clone https://github.com/yosnap/branching-avanzado-skill \
   .claude/skills/branching-avanzado
 ```
 
@@ -72,7 +72,7 @@ El skill incluye un script para simplificar la instalación:
 
 ```bash
 # Descargar y ejecutar directamente
-curl -sSL https://raw.githubusercontent.com/{usuario}/branching-avanzado-skill/main/scripts/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/yosnap/branching-avanzado-skill/main/scripts/install.sh | bash
 
 # O con opciones:
 # Instalación global (por defecto)
@@ -114,7 +114,7 @@ rm -rf .claude/skills/branching-avanzado
 Si quieres trackear el skill como submódulo en tu proyecto:
 
 ```bash
-git submodule add https://github.com/{usuario}/branching-avanzado-skill \
+git submodule add https://github.com/yosnap/branching-avanzado-skill \
   .claude/skills/branching-avanzado
 
 # Actualizar submódulo

@@ -1,7 +1,26 @@
 # branching-avanzado — Skill para Claude Code
 
+![Version](https://img.shields.io/github/v/tag/yosnap/branching-avanzado-skill?label=version&color=blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 Skill de Claude Code que implementa un flujo Git/GitHub avanzado de tres niveles:
 **feature → develop → main**, con versionado semántico por fase y releases automáticas.
+
+## Instalación rápida
+
+```bash
+curl -sSL https://raw.githubusercontent.com/yosnap/branching-avanzado-skill/main/scripts/install.sh | bash
+```
+
+> Instala el skill globalmente en `~/.claude/skills/branching-avanzado` — disponible en todos tus proyectos.
+
+| Comando | Efecto |
+|---------|--------|
+| `... \| bash` | Instala globalmente |
+| `... \| bash -s -- --local` | Instala solo en el proyecto actual |
+| `bash install.sh --update` | Actualiza a la última versión |
+| `bash install.sh --version` | Muestra versión instalada |
+| `bash install.sh --uninstall` | Desinstala |
 
 ## ¿Qué hace este skill?
 
@@ -15,7 +34,7 @@ Skill de Claude Code que implementa un flujo Git/GitHub avanzado de tres niveles
 ### Global (todos los proyectos)
 
 ```bash
-git clone https://github.com/{usuario}/branching-avanzado-skill \
+git clone https://github.com/yosnap/branching-avanzado-skill \
   ~/.claude/skills/branching-avanzado
 ```
 
@@ -23,7 +42,7 @@ git clone https://github.com/{usuario}/branching-avanzado-skill \
 
 ```bash
 mkdir -p .claude/skills
-git clone https://github.com/{usuario}/branching-avanzado-skill \
+git clone https://github.com/yosnap/branching-avanzado-skill \
   .claude/skills/branching-avanzado
 ```
 
@@ -31,16 +50,16 @@ git clone https://github.com/{usuario}/branching-avanzado-skill \
 
 ```bash
 # Global (por defecto)
-curl -sSL https://raw.githubusercontent.com/{usuario}/branching-avanzado-skill/main/scripts/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/yosnap/branching-avanzado-skill/main/scripts/install.sh | bash
 
 # Por proyecto
-curl -sSL https://raw.githubusercontent.com/{usuario}/branching-avanzado-skill/main/scripts/install.sh | bash -s -- --local
+curl -sSL https://raw.githubusercontent.com/yosnap/branching-avanzado-skill/main/scripts/install.sh | bash -s -- --local
 
 # Actualizar
-bash scripts/install.sh --update
+bash install.sh --update
 
 # Desinstalar
-bash scripts/install.sh --uninstall
+bash install.sh --uninstall
 ```
 
 ## Uso

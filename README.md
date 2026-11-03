@@ -4,7 +4,8 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 Skill de Claude Code que implementa un flujo Git/GitHub avanzado de tres niveles:
-**feature → develop → main**, con versionado semántico por fase y releases automáticas.
+**feature → develop → rama principal** (`main` o `master`), con versionado semántico por fase,
+seguimiento del plan en cada transición y tag por versión.
 
 ## Instalación rápida
 
@@ -24,10 +25,15 @@ curl -sSL https://raw.githubusercontent.com/yosnap/branching-avanzado-skill/main
 
 ## ¿Qué hace este skill?
 
-- Crea una rama por cada tarea o fase del plan de desarrollo
-- Asigna versión semántica a cada rama según el plan activo
-- Guía el merge de features → `develop` (nunca directo a `main`)
-- Cuando `develop` está verificado, hace merge a `main` + crea tag + GitHub Release
+- Crea una rama por cada tarea o fase del plan de desarrollo, con la versión en el nombre
+- Asigna versión semántica a cada fase según el plan activo
+- Mantiene al día una tabla de seguimiento por fase (versión, rama, estado, commits, informes,
+  revisión y pendientes) y la tabla resumen del plan, con commit en cada transición
+- Pregunta al usuario toda decisión de producto, diseño, alcance o versión, con opciones
+- Exige revisión de código por fase antes de integrar, con sus correcciones aplicadas
+- Integra con merges locales `--no-ff`: features → `develop` → rama principal (`main` o `master`)
+- Crea el tag por versión; el push, los pull requests, la protección de ramas y la release de GitHub
+  solo si se acordaron en la planificación
 
 ## Instalación
 
@@ -75,25 +81,31 @@ Claude te mostrará el árbol de decisión y te guiará en el flujo que necesita
 ## Flujo de trabajo
 
 ```
-feature/0.2.0-mi-feature
+feat/0.2.0-mi-feature  (verificación local + revisión de código)
         │
-        └──→ develop (integración + pruebas)
+        └──→ develop (merge --no-ff)
                         │
-                        └──→ main (release + tag v0.2.0)
+                        └──→ main o master (merge --no-ff + tag v0.2.0; push y release si se acordaron)
 ```
+
+En paralelo, cada fase del plan (`phase-NN-*.md`) lleva su tabla de seguimiento y `plan.md` la tabla
+resumen; se actualizan al crear la rama, al pasar a revisión, al corregir, al integrar y al bloquearse.
 
 ## Estructura del skill
 
 ```
 branching-avanzado/
 ├── SKILL.md                              ← Instrucciones principales
+├── assets/
+│   └── branch-protection.json            ← Cuerpo para proteger la principal (opcional, con PR)
 ├── scripts/
 │   └── install.sh                        ← Script de instalación
 └── references/
+    ├── seguimiento-fases.md              ← Obligatorio: seguimiento por fase y decisiones
     ├── setup-flujo.md                    ← Configuración inicial
     ├── workflow-rama-fase.md             ← Crear ramas por fase
     ├── workflow-merge-develop.md         ← Merge a develop
-    ├── workflow-release.md               ← Release a main
+    ├── workflow-release.md               ← Release a la rama principal
     ├── commit-standards.md              ← Convenciones de commits
     ├── versionado-semantico.md          ← Reglas de versiones
     └── instalacion.md                   ← Guía de instalación detallada
@@ -103,8 +115,8 @@ branching-avanzado/
 
 - Claude Code (CLI o extensión VSCode)
 - `git` instalado y configurado
-- `gh` CLI instalado y autenticado (`gh auth login`)
-- Repositorio en GitHub
+- Un repositorio git; GitHub y `gh` CLI autenticado solo si se acordó trabajar con pull requests,
+  protección de ramas o releases
 
 ## Licencia
 

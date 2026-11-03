@@ -12,7 +12,10 @@ El repositorio debe contener la carpeta del skill directamente en su raíz:
 ```
 branching-avanzado-skill/          ← repo
 ├── SKILL.md
+├── assets/
+│   └── branch-protection.json
 ├── references/
+│   ├── seguimiento-fases.md
 │   ├── setup-flujo.md
 │   ├── workflow-rama-fase.md
 │   └── ...
@@ -43,6 +46,9 @@ ls ~/.claude/skills/branching-avanzado/SKILL.md
 cd ~/.claude/skills/branching-avanzado
 git pull origin main
 ```
+
+Requiere que la carpeta sea un clon de git. Si se copió a mano, borrarla y clonar de nuevo
+(`git diff --no-index` contra el clon muestra antes si había cambios locales que conservar).
 
 ---
 

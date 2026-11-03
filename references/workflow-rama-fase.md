@@ -3,15 +3,19 @@
 ## Paso 1 — Leer versión del plan activo
 
 Busca la versión en este orden:
-1. `plan.md` del plan activo → campo `version` o sección de la fase actual
-2. Fase activa `phase-XX-*.md` → campo `version` en el frontmatter o encabezado
+1. Fase activa `phase-XX-*.md` → tabla «## Seguimiento» (campos Versión y Rama)
+2. `plan.md` del plan activo → tabla resumen de fases o sección de la fase actual
 3. Si no hay plan: preguntar al usuario qué versión corresponde
 
 **Ejemplo en phase-02-autenticacion.md:**
 ```markdown
-## Overview
-- Version: 0.2.0
-- Priority: High
+## Seguimiento
+
+| Campo | Valor |
+|---|---|
+| Versión | 0.2.0 (se sube al integrar en `develop`) |
+| Rama | `feat/0.2.0-autenticacion-usuario` |
+| Estado | ⚪ Pendiente |
 ```
 
 ## Paso 2 — Determinar tipo de cambio
@@ -47,7 +51,7 @@ docs/0.2.0-api-reference
 ## Paso 4 — Crear la rama
 
 ```bash
-# Siempre partir desde develop actualizado
+# Siempre partir desde develop actualizado (pull solo si develop tiene remoto)
 git checkout develop
 git pull origin develop
 
@@ -58,6 +62,9 @@ git checkout -b feat/0.2.0-autenticacion-usuario
 echo "Rama 'feat/0.2.0-autenticacion-usuario' creada desde develop"
 ```
 
+Justo después, actualizar las dos tablas de seguimiento: la fase pasa a 🟡 «En curso: implementando»
+con su rama y la fecha de inicio, y se hace commit del plan (ver `seguimiento-fases.md`).
+
 ## Paso 5 — Trabajar en la rama
 
 Durante el desarrollo en la rama:
@@ -66,8 +73,8 @@ Durante el desarrollo en la rama:
 - Si develop avanza, rebase periódicamente:
 
 ```bash
-git fetch origin
-git rebase origin/develop
+git fetch origin      # solo si hay remoto
+git rebase develop
 ```
 
 ## Ciclo de vida de la rama

@@ -65,6 +65,11 @@ AuthService permite testearla de forma aislada y reutilizarla.
 5. **Sin secrets:** nunca incluir API keys, passwords, tokens
 6. **Sin archivos generados:** no commitear `node_modules/`, `__pycache__/`, `.env`
 7. **Sin referencias a herramientas de AI** en los mensajes
+8. **Sin números de fase ni códigos del plan** en los mensajes: describe el comportamiento o el
+   invariante, no «fase 3» ni «A1»
+9. **Commits de integración con mensaje fijo:** el de versión es `chore(release): bump version to X.Y.Z`
+   y el merge de `develop` en la principal es `chore(release): vX.Y.Z`; el merge de una fase en
+   `develop` es `--no-ff` con el mensaje por defecto o uno descriptivo
 
 ## Commits a evitar
 
@@ -73,6 +78,9 @@ AuthService permite testearla de forma aislada y reutilizarla.
 git commit -m "fix stuff"
 git commit -m "wip"
 git commit -m "changes"
+
+# ❌ Con referencias al plan en lugar del comportamiento
+git commit -m "feat: fase 3 del plan"
 
 # ❌ Con punto final
 git commit -m "feat(auth): agregar login."

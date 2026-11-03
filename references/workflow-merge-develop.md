@@ -3,17 +3,19 @@
 ## Condiciones para hacer merge
 
 Verificar antes de iniciar:
-- [ ] Todos los tests pasan localmente
-- [ ] Code review completado (o auto-aprobado en proyectos personales)
+- [ ] Tests, lint, typecheck y build pasan en local
+- [ ] Revisión de código de la fase hecha por un agente revisor sobre el diff contra `develop`, con las
+      correcciones aplicadas y el informe en `plans/reports/`
 - [ ] Sin conflictos con develop actualizado
 - [ ] La funcionalidad está completa según los criterios de la fase
+- [ ] Versión subida en todos los ficheros de versión si esta fase cierra una versión (ver `workflow-release.md`)
 
 ## Paso 1 — Actualizar la rama con develop
 
+Solo hace falta si `develop` avanzó desde que salió la rama:
 ```bash
 git checkout feat/0.2.0-autenticacion-usuario
-git fetch origin
-git rebase origin/develop
+git rebase develop
 ```
 
 Si hay conflictos durante el rebase:
@@ -25,7 +27,19 @@ git rebase --continue
 git rebase --abort
 ```
 
-## Paso 2 — Push de la rama actualizada
+## Paso 2 — Merge local a develop (por defecto)
+
+```bash
+git checkout develop
+git merge --no-ff feat/0.2.0-autenticacion-usuario
+```
+
+`--no-ff` crea un commit de merge aunque fuera posible un fast-forward, así el historial muestra
+dónde empieza y acaba cada fase. Nunca `--squash`: se perdería el detalle de los commits.
+
+## Paso 3 — Solo si se acordó trabajar con pull requests
+
+Si en la planificación se acordó revisión humana en GitHub, en lugar del paso 2:
 
 ```bash
 git push origin feat/0.2.0-autenticacion-usuario
@@ -34,8 +48,6 @@ git push --force-with-lease origin feat/0.2.0-autenticacion-usuario
 ```
 
 > Nota: `--force-with-lease` es más seguro que `--force` — falla si alguien más hizo push.
-
-## Paso 3 — Crear Pull Request hacia develop
 
 ```bash
 gh pr create \
@@ -56,25 +68,27 @@ gh pr create \
 - [x] Documentación actualizada"
 ```
 
-## Paso 4 — Merge a develop (tras aprobación)
-
-**Opción A — Desde GitHub UI:**
-Usar "Merge pull request" → "Create a merge commit" (preserva historial)
-
-**Opción B — Desde CLI:**
+Tras la aprobación, merge con commit de merge para conservar el historial:
 ```bash
-gh pr merge <pr-number> --merge --delete-branch
+gh pr merge <pr-number> --merge
 ```
 
-**Importante:** Usar siempre `--merge` (no `--squash` ni `--rebase`) para preservar el historial de commits de la feature.
+**Importante:** nunca `--squash` ni `--rebase` al integrar: se perdería el historial de commits de la fase.
 
-## Paso 5 — Limpiar la rama local
+## Paso 4 — Limpiar la rama (preguntar antes)
+
+En algunos proyectos la rama se conserva hasta cerrar la versión; preguntar antes de borrarla.
 
 ```bash
-git checkout develop
-git pull origin develop
 git branch -d feat/0.2.0-autenticacion-usuario
+git push origin --delete feat/0.2.0-autenticacion-usuario   # solo si se había publicado
 ```
+
+## Paso 5 — Seguimiento
+
+Marcar la fase ✅ «Terminada e integrada» en las dos tablas (o dejarla 🟡 si todavía falta la versión y
+el merge a la principal), con los hashes de los commits y del merge, y hacer commit del plan. Si se
+acordó publicar al cerrar la fase, el push va aquí: `git push origin develop`.
 
 ## Flujo visual
 
@@ -82,7 +96,7 @@ git branch -d feat/0.2.0-autenticacion-usuario
 develop ──────────────────────────────────────────→
          \                                   /
           feat/0.2.0-autenticacion-usuario ──
-          (rebase → push → PR → merge --no-ff)
+          (rebase si hace falta → revisión → merge --no-ff local)
 ```
 
 ## Casos especiales

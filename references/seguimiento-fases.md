@@ -37,8 +37,9 @@ Y `plan.md` tiene una tabla resumen de fases, con las columnas `# | Fase | Versi
 | Si algo la para | 🔴 Bloqueada: motivo | Pendiente con lo que hace falta |
 | Cuando cambie lo pendiente | (sin cambio) | Pendiente |
 
-Los planes no necesitan rama: si viven en un repositorio aparte (por ejemplo `captaru-team`), se hace
-commit en su `main` en cada transición.
+Los planes no necesitan rama: si viven en un repositorio aparte (por ejemplo uno con el nombre del
+cliente), se hace commit en su rama principal en cada transición y, si se acordó publicar, también se
+sube. Si ese repositorio está clonado dentro del proyecto, su carpeta va en el `.gitignore` del proyecto.
 
 **Push:** todo se integra en local. El push (de ramas, del plan o de la integradora) solo se hace si se
 acordó con Paulo durante la planificación —por ejemplo, push al terminar cada fase verificada y
@@ -51,7 +52,9 @@ testeada—, y esa decisión se anota en el `plan.md`. Si no se acordó, no se h
   y espera su respuesta. No elijas por tu cuenta y lo cuentes después.
 - Si un subagente propone una decisión, o la toma, súbela a Paulo antes de integrarla.
 - Las preguntas abiertas de cada fase van en «Pendiente» hasta que Paulo las responda. Después se
-  anota la decisión, con su fecha, en el archivo de la fase.
+  anota la decisión, con su fecha, en una sección «## Decisiones» al final del archivo de la fase.
+- La versión de cada fase y si una fase lleva código o solo documentos se fijan en la planificación,
+  en la tabla resumen; no se improvisan al crear la rama.
 - No se pregunta lo que se puede averiguar leyendo el repositorio, ni las convenciones ya acordadas
   (formato de ramas, commits o versiones).
 
@@ -63,7 +66,7 @@ Si Paulo pide probar un conjunto de fases antes de llevarlas a `develop`:
 develop ──▶ feat/<integradora>
               ├──▶ {tipo}/<versión>-<slug>  (cada fase sale de la integradora actualizada)
               └──  code review → merge --no-ff a la integradora → subir versión y changelog
-feat/<integradora> ──(todo probado)──▶ develop ──▶ PR a main ──▶ tag
+feat/<integradora> ──(todo probado)──▶ develop ──▶ merge --no-ff a la principal ──▶ tag
 ```
 
 - La versión se sube en el merge a la integradora, no en la rama de la fase, para que las fases

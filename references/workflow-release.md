@@ -1,8 +1,10 @@
-# Workflow: Release (develop → main)
+# Workflow: Release (develop → rama principal)
+
+La rama principal es la que el repositorio tiene por defecto, `main` o `master`; los ejemplos usan `main`.
 
 ## Cuándo hacer una release
 
-- Todas las fases de la versión objetivo están en `develop`
+- Todas las fases de la versión objetivo están en `develop`, cada una con su revisión de código
 - Tests pasan en `develop`
 - El usuario confirma que la versión está lista para producción
 
@@ -12,18 +14,21 @@ Antes de cualquier acción, confirmar:
 - ¿Cuál es la versión que vamos a lanzar? (ej: `0.2.0`)
 - ¿Hay algo pendiente que deba entrar en esta release?
 
-## Paso 2 — Actualizar archivos de versión en develop
+## Paso 2 — Actualizar los archivos de versión
 
-```bash
-git checkout develop
-git pull origin develop
-```
+Dónde se hace el commit de versión:
+- Si una fase equivale a una versión (lo habitual), al final de la rama de la fase, justo antes de
+  integrarla en `develop`; así el merge ya lleva la versión.
+- Si varias fases comparten versión, en `develop` cuando haya entrado la última, o en la rama
+  integradora si se usa (ver `seguimiento-fases.md`).
 
-Actualizar el archivo de versión según el tipo de proyecto:
+Actualizar **todos** los archivos de versión del proyecto. En un monorepo suelen ser varios (por
+ejemplo el `package.json` y el `package-lock.json` de cada paquete y el `app.json` de Expo); deben
+quedar idénticos y en el mismo commit.
 
 **package.json:**
 ```bash
-npm version 0.2.0 --no-git-tag-version
+npm version 0.2.0 --no-git-tag-version   # actualiza también package-lock.json; en un monorepo, en cada paquete
 # o manualmente editar "version": "0.2.0"
 ```
 
@@ -40,18 +45,15 @@ echo "0.2.0" > VERSION
 
 Commit del bump de versión:
 ```bash
-git add .
+git add <ficheros de versión>
 git commit -m "chore(release): bump version to 0.2.0"
-git push origin develop
 ```
 
-## Paso 3 — Merge develop → main
+## Paso 3 — Merge local develop → principal
 
 ```bash
-git checkout main
-git pull origin main
+git checkout main            # o master
 git merge --no-ff develop -m "chore(release): v0.2.0"
-git push origin main
 ```
 
 ## Paso 4 — Crear tag semántico
@@ -63,12 +65,14 @@ Cambios incluidos:
 - Autenticación de usuario (feat/0.2.0-autenticacion-usuario)
 - [otros cambios de la versión]"
 
-git push origin v0.2.0
-# o push de todos los tags:
-git push origin --tags
+# Solo si se acordó publicar en la planificación:
+git push origin main develop v0.2.0
 ```
 
-## Paso 5 — Crear GitHub Release
+## Paso 5 — Crear GitHub Release (solo si se acordó)
+
+Opcional. Los tags ya marcan cada versión; la release se crea solo si se acordó en la planificación
+y requiere haber subido el tag.
 
 ```bash
 gh release create v0.2.0 \
@@ -96,14 +100,20 @@ gh release create v0.2.0 \
 - [actualizaciones de dependencias si aplica]"
 ```
 
-## Paso 6 — Sincronizar develop con main
+## Paso 6 — Sincronizar develop con la principal (solo si hace falta)
 
-Tras la release, sincronizar develop para que tenga el tag:
+Solo si la principal recibió commits que `develop` no tiene (por ejemplo un hotfix). Con el flujo
+normal, el merge `--no-ff` de `develop` en la principal no deja nada que sincronizar.
 ```bash
 git checkout develop
 git merge --no-ff main -m "chore: sync develop with main after v0.2.0 release"
-git push origin develop
+git push origin develop   # solo si se acordó publicar
 ```
+
+## Paso 7 — Seguimiento
+
+Marcar la fase ✅ «Terminada e integrada» en las dos tablas del plan, con fin, commits (versión, merge
+en `develop`, merge en la principal y tag), informes y pendientes reales, y hacer commit del plan.
 
 ## Flujo visual completo
 
@@ -112,7 +122,7 @@ develop ────────────────────────
     feat/0.2.0-auth ──→ develop
     feat/0.2.0-pagos ──→ develop
                                  \
-main ─────────────────────────────→ merge --no-ff → tag v0.2.0 → release
+principal ────────────────────────→ merge --no-ff → tag v0.2.0 → (push y release si se acordaron)
 ```
 
 ## Tipos de versión semántica

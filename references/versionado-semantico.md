@@ -18,22 +18,26 @@ La mayoría de proyectos en desarrollo activo usan `0.x.y`:
 
 ## Correspondencia fase del plan → versión
 
-Cada fase del plan debe tener su versión documentada. Leer de:
+Cada fase del plan debe tener su versión documentada. Leer de la tabla «## Seguimiento» de la fase:
 
 ```markdown
 # phase-02-autenticacion.md
-## Overview
-- Version: 0.2.0
+## Seguimiento
+| Versión | 0.2.0 (se sube al integrar en `develop`) |
+| Rama | `feat/0.2.0-autenticacion-usuario` |
 ```
 
-O en el `plan.md`:
+O de la tabla resumen del `plan.md`:
 ```markdown
-## Fases
-- [x] 0.1.0 — Setup inicial
-- [ ] 0.2.0 — Autenticación
-- [ ] 0.3.0 — Sistema de pagos
-- [ ] 1.0.0 — Release estable
+| # | Fase | Versión | Rama | Estado | Depende de |
+|---|---|---|---|---|---|
+| 1 | Setup inicial | 0.1.0 | `chore/0.1.0-setup-inicial` | ✅ Terminada e integrada | — |
+| 2 | Autenticación | 0.2.0 | `feat/0.2.0-autenticacion-usuario` | 🟡 En curso: implementando | 1 |
+| 3 | Sistema de pagos | 0.3.0 | `feat/0.3.0-sistema-pagos` | ⚪ Pendiente | 2 |
 ```
+
+Las fases que solo producen documentos o informes no necesitan versión ni rama de código y se marcan
+con «—». Una fase con código lleva versión aunque no cambie el comportamiento visible de la app.
 
 ## Incremento de versión por tipo de cambio
 
@@ -67,6 +71,7 @@ La versión propuesta es 0.2.0. ¿Confirmas?
 | Rust | `Cargo.toml` | `version = "0.2.0"` |
 | Go | `go.mod` + `git tag` | Solo tag |
 | Genérico | `VERSION` | `0.2.0` |
+| Monorepo / Expo | `package.json` y `package-lock.json` de cada paquete, `app.json` | Todos iguales, en el mismo commit |
 
 ## Tags de pre-release (opcional)
 
@@ -81,6 +86,7 @@ v0.2.0            ← release final
 Crear tag de pre-release:
 ```bash
 git tag -a v0.2.0-rc.1 -m "Release candidate 1 para v0.2.0"
+# solo si se acordó publicar:
 git push origin v0.2.0-rc.1
 gh release create v0.2.0-rc.1 --prerelease --title "v0.2.0-rc.1"
 ```

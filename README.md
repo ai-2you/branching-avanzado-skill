@@ -16,6 +16,10 @@ seguimiento del plan en cada transición y tag por versión.
 >   [`companion-skills/integracion-local/`](companion-skills/integracion-local/SKILL.md).
 > - **Versión solo al promocionar un lote**, subiendo el último número (`0.0.n`); las fases no suben versión.
 > - Las decisiones se preguntan «al usuario» (no a una persona concreta).
+> - **Guía de pruebas por worktree:** cada fusión deja en `docs/pruebas-integracion/` qué probar a mano;
+>   el usuario prueba el lote en local (`/integracion-local probar`) y no se promociona con pruebas pendientes.
+> - **La sesión de la integradora orquesta:** es la única que fusiona (con cerrojo) y la que concede turnos
+>   de push, PR y despliegue; doble revisión (la del worktree y la de la integradora) antes de cada fusión.
 
 ## Instalación rápida
 
@@ -127,7 +131,8 @@ branching-avanzado/
 cp -r companion-skills/integracion-local ~/.claude/skills/integracion-local
 ```
 
-Uso: `/integracion-local` al terminar un worktree, `/integracion-local promocionar` para subir el lote,
+Uso: `/integracion-local` al terminar un worktree, `/integracion-local probar` para probar el lote en local,
+`/integracion-local promocionar` para subirlo,
 `/integracion-local iniciar` para montar el flujo en un proyecto. Configuración opcional por proyecto en
 `.claude/integracion-local.json` (plantilla en `companion-skills/integracion-local/assets/`).
 

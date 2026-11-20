@@ -8,7 +8,7 @@ description: >
   sube en cada promoción. Usar SIEMPRE al terminar un worktree o una fase («/integracion-local»,
   «integra esto», «PR local», «fusiona en local»), al promocionar un lote («/integracion-local
   promocionar») y al montar el flujo en un proyecto («/integracion-local iniciar»).
-argument-hint: "[integrar | promocionar | estado | sacar <sha> | iniciar]"
+argument-hint: "[integrar | probar | promocionar | estado | sacar <sha> | iniciar]"
 metadata:
   scope: global
   author: user
@@ -53,6 +53,8 @@ Sin fichero se usan los valores por defecto:
 | `version.incremento` | `patch` | `patch` (último número: 0.0.n) o `minor` (solo proyectos que ya lo usaban) |
 | `version.ficheros` | `["package.json"]` | ficheros con el número de versión |
 | `changelog` | `CHANGELOG.md` | con sección `## [Sin publicar]` |
+| `pruebas.carpeta` | `docs/pruebas-integracion` | una guía de pruebas por worktree integrado |
+| `pruebas.entornoLocal` | — | cómo levantar el entorno local de la integradora para las pruebas del usuario |
 | `turnos` | — | protocolo de turnos del proyecto para push/PR/deploy (si existe) |
 
 ## Reglas que no se negocian
@@ -65,18 +67,35 @@ Sin fichero se usan los valores por defecto:
 4. **Nada se pierde:** prohibido `reset --hard`, `branch -D`, `push --force`, `worktree remove` o borrar
    carpetas de trabajo sin permiso explícito del usuario. Antes de cerrar un worktree, su rama debe
    estar en la integradora (`git merge-base --is-ancestor <rama> integracion-local`).
-5. **Un integrador cada vez:** el cerrojo de `IL bloquear`/`IL liberar` cubre fusión + verificación.
-   Fusionar en local NO pide turno a ningún orquestador; push, PR y despliegues SÍ lo piden si el
-   proyecto tiene protocolo de turnos.
+5. **La sesión de la integradora es el orquestador del proyecto** y la única que fusiona en
+   `integracion-local`, en serie y con el cerrojo de `IL bloquear`/`IL liberar` (cubre fusión +
+   verificación). También concede los turnos de push, PR, merge en GitHub, tags y despliegues, y es la
+   que promociona. Los workers dejan su rama lista y se lo dicen; no fusionan ni mueven
+   `develop`/`main`.
 6. **Migraciones y código viajan juntos** en el mismo lote. Nunca se promociona una migración sin el
    código que la usa, ni al revés.
 7. **Autoría:** solo el usuario. Sin `Co-Authored-By` de IA (el script lo comprueba).
 8. **Ramas nuevas** salen de la integradora actualizada (en Orca: `--base-branch integracion-local`),
    no de `develop`, para heredar lo ya integrado y no chocar después.
+9. **Cada fusión trae su guía de pruebas** (`pruebas.carpeta/<AAAAMMDD-HHMM>-<rama>.md`, plantilla en
+   `assets/plantilla-guia-pruebas.md`): qué probar a mano de ese worktree. Sin guía no se fusiona
+   (`IL comprobar` lo exige); si no hay nada que probar a mano, la guía lo dice con «➖ Sin prueba manual».
+10. **Ningún lote sube sin que el usuario lo haya probado en local:** `IL pruebas` debe salir sin
+    pendientes (todas ✅ o ➖) antes de promocionar. Los únicos commits directos en la integradora son
+    el resultado de las pruebas (`chore(pruebas): …`) y el de versión (`chore(release): …`).
+11. **Doble revisión:** el worker hace su `/ck:code-review` en la rama (la «PR local») y la integradora
+    hace además su propia revisión del diff (`git diff integracion-local...<rama>`) antes del merge.
+12. **Ramas:** en local la rama común es `integracion-local`; `develop` y la principal son las del
+    remoto y no se usan como ramas de trabajo locales. Proyecto sin remoto: se crea el repositorio
+    (privado, con escaneo de secretos del historial y confirmación del usuario) antes de la primera
+    promoción.
 
 ## [INTEGRAR] Al terminar un worktree (modo por defecto)
 
-Desde el worktree que termina. Sin preguntas intermedias: el usuario ya lo pidió al invocarla.
+Pasos 1-7: el **worker**, en su worktree. Pasos 8-13: la **sesión de la integradora** (orquestador),
+cuando el worker le avisa de que la rama está lista; antes del paso 8 hace su propia revisión del diff
+(regla 11). En proyectos sin sesión de integradora, la misma sesión hace todo. Sin preguntas
+intermedias: el usuario ya lo pidió al invocarla.
 
 1. **Todo comiteado.** `git status` limpio. Si hay trabajo sin comitear, comitearlo (conventional commit).
 2. **Traer la integradora:** `git merge integracion-local` en la rama. Conflictos → resolverlos aquí,
@@ -87,9 +106,14 @@ Desde el worktree que termina. Sin preguntas intermedias: el usuario ya lo pidi�
 4. **Verificación local** en la rama: la `verificacionRapida` del proyecto (o typecheck + lint + tests
    + build) y la E2E local si el trabajo toca interfaz. Nada en rojo.
 5. **CHANGELOG:** entrada en `## [Sin publicar]`. Sin tocar la versión.
-6. `bash IL comprobar` → todo ✓.
-7. `bash IL bloquear "integrar <rama>"`.
-8. Escribir el mensaje del merge en un fichero temporal (es el registro de la «PR»):
+6. **Guía de pruebas** para el usuario, comiteada en la rama: copiar la plantilla a
+   `<pruebas.carpeta>/<AAAAMMDD-HHMM>-<rama con guiones>.md` y rellenarla con lo que aporta el worktree,
+   la preparación (migraciones, datos, usuario) y los pasos con su resultado esperado, más la regresión
+   a mirar. Escrita para el usuario, sin jerga. Estado inicial «⏳ Pendiente de probar». Reutilizar lo
+   ya escrito en el plan o en el RESUMEN de pruebas del worktree si existe.
+7. `bash IL comprobar` → todo ✓ (incluida la guía).
+8. `bash IL bloquear "integrar <rama>"`.
+9. Escribir el mensaje del merge en un fichero temporal (es el registro de la «PR»):
    ```
    chore(integracion): <qué aporta, en una línea> (#<issue>)
 
@@ -100,21 +124,39 @@ Desde el worktree que termina. Sin preguntas intermedias: el usuario ya lo pidi�
    Migraciones: <ninguna | lista>
    PR antigua en GitHub: <#n o —> (se cierra al promocionar)
    ```
-9. `bash IL fusionar <rama> <fichero>`.
-10. **Verificar el resultado fusionado** en la carpeta de `IL ruta` (typecheck + tests afectados o la
+10. `bash IL fusionar <rama> <fichero>`.
+11. **Verificar el resultado fusionado** en la carpeta de `IL ruta` (typecheck + tests afectados o la
     `verificacionRapida`). Si falla por la combinación: `bash IL sacar <sha>`, liberar y arreglar en la
     rama. Nunca dejar la integradora en rojo. Si la verificación regenera ficheros versionados
     (informes, inventarios), restaurarlos con `git restore` para dejar la integradora limpia.
-11. `bash IL liberar`.
-12. **Seguimiento:** marcar la fase/worktree como «✅ Integrado en local, pendiente de promoción» en el
+12. `bash IL liberar`.
+13. **Seguimiento:** marcar la fase/worktree como «✅ Integrado en local, pendiente de promoción» en el
     plan y en la memoria del proyecto. El worktree puede pasar ya a `check-cierre`.
+
+## [PROBAR] El usuario prueba el lote en local, worktree a worktree
+
+Se lanza en la integradora cuando el usuario quiere probar lo integrado («/integracion-local probar»),
+siempre antes de promocionar.
+
+1. `bash IL pruebas` → lista de guías del lote con su estado y su merge, y fusiones sin guía.
+2. **Levantar el entorno local de la integradora** según `pruebas.entornoLocal`: BD propia con todas las
+   migraciones del lote aplicadas desde cero, servidores en puertos propios y el usuario de pruebas.
+3. **Recorrer tú cada guía antes de dársela al usuario**, en navegador real y sin atajos: si un paso no
+   funciona, la guía pasa a «❌ Falla: …» y no se le da ese enlace.
+4. **Al usuario, una guía cada vez**, en el orden del lote: qué aporta, la preparación y los pasos con
+   enlaces locales clicables (uno por pantalla) y el resultado esperado.
+5. Con lo que diga el usuario, actualizar el «Estado» y el «Resultado» de la guía y comitear en la
+   integradora: `chore(pruebas): <rama> probada|con fallos`.
+6. Si algo falla: se arregla en la rama del worktree y se vuelve a integrar (su guía vuelve a
+   «⏳ Pendiente»), o se saca del lote con `IL sacar` si el usuario prefiere no esperar.
 
 ## [PROMOCIONAR] Llevar el lote a develop
 
 Lo lanza el usuario o el orquestador. Lotes de 3-5 trabajos o diarios, no semanales.
 
 1. **Turno** si el proyecto tiene protocolo (`turnos`): es una acción en GitHub.
-2. `bash IL bloquear promocion` y `bash IL estado` → lista del lote.
+2. `bash IL bloquear promocion`, `bash IL estado` → lista del lote, y **`bash IL pruebas` sin
+   pendientes** (todas ✅ o ➖): si no, PARA y lanza antes [PROBAR].
 3. **Traer el destino:** en la integradora, `git fetch` y `git merge --no-ff origin/<destino>` si va por
    detrás (hotfixes u olas del sistema antiguo). Conflictos → resolver aquí con cuidado y verificar.
 4. **Versión:** subir según `version.incremento` en todos los `version.ficheros`; en el CHANGELOG,
@@ -132,11 +174,13 @@ Lo lanza el usuario o el orquestador. Lotes de 3-5 trabajos o diarios, no semana
 7. **PRs antiguas** de las ramas del lote (`gh pr list --head <rama>`): cerrarlas con un comentario que
    enlace la PR del lote, si GitHub no las marcó ya como fusionadas.
 8. `bash IL liberar`. Despliegue y E2E en producción según el proyecto (un solo resumen de pruebas
-   para todo el lote).
+   para todo el lote). Al promocionar, rellenar el campo «Lote» de cada guía con la versión: las guías
+   se quedan en el repositorio como registro de qué se probó en cada versión.
 
 ## [ESTADO] y [SACAR]
 
 - `bash IL estado`: integradora, distancia al destino, lote pendiente y cerrojo.
+- `bash IL pruebas`: guías del lote, su estado y las fusiones que no traen guía.
 - `bash IL sacar <sha>` (con cerrojo): revierte la fusión de un trabajo roto. Para volver a meterlo más
   tarde, revertir el revert en su rama (`git revert <sha-del-revert>`) antes de integrar de nuevo.
 

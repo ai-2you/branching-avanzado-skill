@@ -8,6 +8,7 @@
 #   ruta                       imprime la carpeta del worktree integrador
 #   estado                     integradora vs destino remoto, lote pendiente y cerrojo
 #   comprobar [rama]           requisitos para fusionar una rama en la integradora
+#   pruebas                    guías de pruebas del lote pendiente y su estado
 #   bloquear <motivo>          toma el cerrojo de integración (uno a la vez)
 #   liberar [--forzar]         suelta el cerrojo
 #   fusionar <rama> <fichero>  merge --no-ff en la integradora con el mensaje del fichero
@@ -49,6 +50,7 @@ PRINCIPAL_DEF="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/de
 PRINCIPAL="$(leer_cfg ramaPrincipal "${PRINCIPAL_DEF:-main}")"
 if existe_ref refs/remotes/origin/develop || existe_ref refs/heads/develop; then DEST_DEF=develop; else DEST_DEF="$PRINCIPAL"; fi
 DESTINO="$(leer_cfg ramaDestino "$DEST_DEF")"
+PRUEBAS="$(leer_cfg pruebas.carpeta docs/pruebas-integracion)"
 
 # Ref de comparación del destino: el remoto si existe (proyectos con GitHub), si no la rama local.
 if existe_ref "refs/remotes/origin/$DESTINO"; then DEST_REF="origin/$DESTINO"; else DEST_REF="$DESTINO"; fi
@@ -126,6 +128,13 @@ cmd_comprobar() {
     echo "✗ «$rama» no contiene la integradora: en su worktree ejecuta «git merge $INTEG», resuelve conflictos y vuelve a verificar"; fallos=1
   fi
 
+  local guias; guias="$(git diff --name-only --diff-filter=A "$INTEG...$rama" -- "$PRUEBAS")"
+  if [ -n "$guias" ]; then
+    echo "✓ guía de pruebas: $(echo "$guias" | paste -sd ',' -)"
+  else
+    echo "✗ falta la guía de pruebas en $PRUEBAS/ (plantilla: assets/plantilla-guia-pruebas.md)"; fallos=1
+  fi
+
   local n; n="$(git rev-list --count "$INTEG..$rama")"
   [ "$n" -gt 0 ] && echo "✓ $n commits por integrar" || { echo "✗ no hay nada que integrar"; fallos=1; }
 
@@ -135,6 +144,38 @@ cmd_comprobar() {
   echo "autores: $(git log "$INTEG..$rama" --no-merges --format='%an <%ae>' | sort -u | paste -sd ',' -)"
 
   [ "$fallos" -eq 0 ] && echo "OK: «$rama» se puede fusionar en «$INTEG»" || CODIGO=4 die "requisitos sin cumplir"
+}
+
+cmd_pruebas() { # guías añadidas en el lote pendiente (integradora vs destino)
+  local w g estado rama merge pend=0 total=0
+  w="$(ruta_integradora)"
+  echo "Guías de pruebas del lote ($DEST_REF..$INTEG, carpeta $PRUEBAS):"
+  while IFS= read -r g; do
+    [ -n "$g" ] || continue
+    total=$((total + 1))
+    estado="$(grep -m1 -E '^\| *Estado *\|' "$w/$g" | cut -d'|' -f3 | sed 's/^ *//;s/ *$//')"
+    rama="$(grep -m1 -E '^\| *Rama *\|' "$w/$g" | cut -d'|' -f3 | tr -d ' `')"
+    merge="$(git log --first-parent --merges --format=%h -1 -F --grep="Rama: $rama " "$DEST_REF..$INTEG" 2>/dev/null)"
+    case "$estado" in ✅*|➖*) ;; *) pend=$((pend + 1)) ;; esac
+    printf '  %-12s %s\n      rama %s · merge %s\n' "${estado:-¿sin estado?}" "$g" "${rama:-?}" "${merge:-?}"
+  done < <(git diff --name-only --diff-filter=A "$DEST_REF...$INTEG" -- "$PRUEBAS")
+  # Fusiones del lote sin guía (cada fusión debe traer la suya, aunque sea «➖ Sin prueba manual»)
+  local sha r todas; todas="$(git diff --name-only --diff-filter=A "$DEST_REF...$INTEG" -- "$PRUEBAS" | while IFS= read -r g; do [ -n "$g" ] && cat "$w/$g"; done)"
+  while IFS= read -r sha; do
+    [ -n "$sha" ] || continue
+    # Traer el destino o la principal a la integradora no es un worktree: no lleva guía.
+    if git merge-base --is-ancestor "$sha^2" "$DEST_REF" 2>/dev/null \
+      || { existe_ref "refs/remotes/origin/$PRINCIPAL" && git merge-base --is-ancestor "$sha^2" "origin/$PRINCIPAL" 2>/dev/null; } \
+      || git merge-base --is-ancestor "$sha^2" "$PRINCIPAL" 2>/dev/null; then
+      continue
+    fi
+    r="$(git log -1 --format=%B "$sha" | sed -n 's/^Rama: \([^ ]*\).*/\1/p' | head -1)"
+    if [ -z "$r" ] || ! printf '%s' "$todas" | grep -qF -- "\`$r\`"; then
+      echo "  ✗ SIN GUÍA   merge $sha (rama ${r:-desconocida})"; pend=$((pend + 1))
+    fi
+  done < <(git log --first-parent --merges --format=%h "$DEST_REF..$INTEG")
+  echo "Total guías: $total · pendientes, fallidas o sin guía: $pend"
+  [ "$pend" -eq 0 ] || CODIGO=6 die "hay guías sin probar o con fallos: el lote no se puede promocionar"
 }
 
 cmd_fusionar() {
@@ -165,6 +206,7 @@ case "$CMD" in
   ruta) ruta_integradora; echo ;;
   estado) cmd_estado ;;
   comprobar) cmd_comprobar "$@" ;;
+  pruebas) cmd_pruebas ;;
   bloquear) cmd_bloquear "$@" ;;
   liberar) cmd_liberar "$@" ;;
   fusionar) cmd_fusionar "$@" ;;

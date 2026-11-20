@@ -12,5 +12,9 @@
     "ficheros": ["package.json"]
   },
   "changelog": "CHANGELOG.md",
+  "pruebas": {
+    "carpeta": "docs/pruebas-integracion",
+    "entornoLocal": "pnpm install && pnpm run db:migrate && pnpm run dev (puertos propios de la integradora)"
+  },
   "turnos": null
 }

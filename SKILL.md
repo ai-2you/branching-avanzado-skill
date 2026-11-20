@@ -12,7 +12,7 @@ description: >
   al usuario las decisiones.
 metadata:
   author: paulo
-  version: "1.2.1"
+  version: "1.2.2"
 ---
 
 # Branching Avanzado

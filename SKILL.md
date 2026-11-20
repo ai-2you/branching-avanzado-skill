@@ -12,7 +12,7 @@ description: >
   al usuario las decisiones.
 metadata:
   author: paulo
-  version: "1.2.0"
+  version: "1.2.1"
 ---
 
 # Branching Avanzado
@@ -52,7 +52,7 @@ Lee `references/seguimiento-fases.md` **antes de crear la primera rama** y aplí
 3. **Revisión de código por fase** antes de integrar, con sus correcciones aplicadas.
 4. **Todo en local:** las ramas de fase se integran con merge local (`--no-ff`) en la integradora o en
    `develop`, y `develop` en la principal también en local. No se hace push por defecto. Si hace falta
-   push al terminar cada fase (verificada y testeada), se le pregunta a Paulo **en el momento de la
+   push al terminar cada fase (verificada y testeada), se le pregunta al usuario **en el momento de la
    planificación** y se anota en el plan; nunca se pregunta ni se hace a mitad del desarrollo. Los
    bloques de comandos con `git push` de esta skill solo aplican si en la planificación se acordó publicar.
 5. **Sin pull requests ni CI remota por defecto:** la revisión de código la hace un agente revisor sobre
@@ -60,6 +60,14 @@ Lee `references/seguimiento-fases.md` **antes de crear la primera rama** y aplí
    de integrar. Los pull requests, la protección de ramas y la release de GitHub son opcionales: solo si
    se acordaron en la planificación (equipo externo, revisión humana obligatoria o petición expresa).
    Los bloques con `gh pr` y `gh release` solo aplican en ese caso.
+6. **Varios worktrees en paralelo → skill `integracion-local`** (norma global del usuario, 20-11-2026):
+   cada worktree que termina se fusiona con `--no-ff` en la rama local `integracion-local` tras code
+   review y verificación local, y los lotes se promocionan juntos a `develop`/la principal.
+7. **Versión solo al promocionar** (norma global del usuario, 20-11-2026): las ramas de fase NO suben
+   versión; escriben su entrada en `## [Sin publicar]` del CHANGELOG. En cada promoción se sube el
+   último número (`0.0.n`), salvo proyectos que el usuario haya dejado con su numeración antigua
+   (lo indica su `.claude/integracion-local.json`). Esta regla manda sobre la tabla de
+   `references/versionado-semantico.md`.
 
 ---
 
@@ -150,10 +158,10 @@ integración y seguimiento; el detalle está en `workflow-merge-develop.md` y `w
    `plans/reports/`. Marcar la fase 🟡 «En curso: en revisión de código».
 3. **Corregir** en la misma rama los hallazgos que procedan, repetir la verificación y marcar
    🟡 «En curso: correcciones aplicadas» con el informe y el número de puntos.
-4. **Subir la versión** en todos los ficheros de versión del proyecto (en un monorepo son varios)
-   con un commit `chore(release): bump version to X.Y.Z` al final de la rama.
-5. **Integrar**: merge `--no-ff` en `develop`; merge `--no-ff` de `develop` en la principal con el
-   mensaje `chore(release): vX.Y.Z`; tag anotado `vX.Y.Z`.
+4. **Sin subir versión en la rama:** solo la entrada del CHANGELOG en `## [Sin publicar]` (regla 7).
+5. **Integrar con `/integracion-local`**: merge `--no-ff` en la rama integradora local. La versión,
+   el paso a `develop`/la principal y el tag `vX.Y.Z` se hacen al promocionar el lote
+   (`/integracion-local promocionar`).
 6. **Seguimiento**: marcar ✅ «Terminada e integrada» en las dos tablas con fin, commits (rama,
    versión, merges y tag), informes y pendientes reales; anotar con fecha las decisiones tomadas en
    la sección «Decisiones» de la fase; commit del plan.

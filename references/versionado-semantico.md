@@ -1,5 +1,12 @@
 # Versionado semántico en el flujo de branching
 
+> **Regla vigente del usuario (20-11-2026), manda sobre lo que sigue:** la versión cambia SOLO al
+> promocionar un lote (`/integracion-local promocionar`), y por defecto sube el **último número**
+> (`0.0.n` → `0.0.n+1`), también en los proyectos ya abiertos. Las fases y ramas no llevan versión
+> propia ni la suben. MAJOR solo con aprobación explícita del usuario. Excepción: proyectos que el
+> usuario dejó con su numeración antigua (`version.incremento: "minor"` en su
+> `.claude/integracion-local.json`).
+
 ## Formato: MAJOR.MINOR.PATCH
 
 ```

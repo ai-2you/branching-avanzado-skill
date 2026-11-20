@@ -1,16 +1,26 @@
 # branching-avanzado — Skill para Claude Code
 
-![Version](https://img.shields.io/github/v/tag/yosnap/branching-avanzado-skill?label=version&color=blue)
+![Version](https://img.shields.io/github/v/tag/ai-2you/branching-avanzado-skill?label=version&color=blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 Skill de Claude Code que implementa un flujo Git/GitHub avanzado de tres niveles:
 **feature → develop → rama principal** (`main` o `master`), con versionado semántico por fase,
 seguimiento del plan en cada transición y tag por versión.
 
+> **Versión personalizada** de [yosnap/branching-avanzado-skill](https://github.com/yosnap/branching-avanzado-skill)
+> (MIT, autor original: Paulo). Cambios de este fork:
+>
+> - **Integración Local para varios worktrees en paralelo:** cada worktree terminado hace su «PR local»
+>   (code review + verificación local + `merge --no-ff`) en la rama local `integracion-local`, y los lotes
+>   se promocionan juntos a `develop`/la principal con una sola PR y un solo CI. Skill complementaria en
+>   [`companion-skills/integracion-local/`](companion-skills/integracion-local/SKILL.md).
+> - **Versión solo al promocionar un lote**, subiendo el último número (`0.0.n`); las fases no suben versión.
+> - Las decisiones se preguntan «al usuario» (no a una persona concreta).
+
 ## Instalación rápida
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/yosnap/branching-avanzado-skill/main/scripts/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/ai-2you/branching-avanzado-skill/main/scripts/install.sh | bash
 ```
 
 > Instala el skill globalmente en `~/.claude/skills/branching-avanzado` — disponible en todos tus proyectos.
@@ -40,7 +50,7 @@ curl -sSL https://raw.githubusercontent.com/yosnap/branching-avanzado-skill/main
 ### Global (todos los proyectos)
 
 ```bash
-git clone https://github.com/yosnap/branching-avanzado-skill \
+git clone https://github.com/ai-2you/branching-avanzado-skill \
   ~/.claude/skills/branching-avanzado
 ```
 
@@ -48,7 +58,7 @@ git clone https://github.com/yosnap/branching-avanzado-skill \
 
 ```bash
 mkdir -p .claude/skills
-git clone https://github.com/yosnap/branching-avanzado-skill \
+git clone https://github.com/ai-2you/branching-avanzado-skill \
   .claude/skills/branching-avanzado
 ```
 
@@ -56,10 +66,10 @@ git clone https://github.com/yosnap/branching-avanzado-skill \
 
 ```bash
 # Global (por defecto)
-curl -sSL https://raw.githubusercontent.com/yosnap/branching-avanzado-skill/main/scripts/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/ai-2you/branching-avanzado-skill/main/scripts/install.sh | bash
 
 # Por proyecto
-curl -sSL https://raw.githubusercontent.com/yosnap/branching-avanzado-skill/main/scripts/install.sh | bash -s -- --local
+curl -sSL https://raw.githubusercontent.com/ai-2you/branching-avanzado-skill/main/scripts/install.sh | bash -s -- --local
 
 # Actualizar
 bash install.sh --update
@@ -110,6 +120,16 @@ branching-avanzado/
     ├── versionado-semantico.md          ← Reglas de versiones
     └── instalacion.md                   ← Guía de instalación detallada
 ```
+
+## Skill complementaria: integracion-local
+
+```bash
+cp -r companion-skills/integracion-local ~/.claude/skills/integracion-local
+```
+
+Uso: `/integracion-local` al terminar un worktree, `/integracion-local promocionar` para subir el lote,
+`/integracion-local iniciar` para montar el flujo en un proyecto. Configuración opcional por proyecto en
+`.claude/integracion-local.json` (plantilla en `companion-skills/integracion-local/assets/`).
 
 ## Requisitos
 

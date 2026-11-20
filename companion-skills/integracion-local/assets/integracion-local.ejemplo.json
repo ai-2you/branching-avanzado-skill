@@ -1,0 +1,16 @@
+{
+  "ramaIntegradora": "integracion-local",
+  "ramaDestino": "develop",
+  "ramaPrincipal": "main",
+  "promocion": "local",
+  "publicar": false,
+  "verificacionRapida": "pnpm run lint && pnpm run typecheck && pnpm test",
+  "verificacionCompleta": "pnpm run lint && pnpm run typecheck && pnpm test && pnpm run build",
+  "verificacionMigraciones": null,
+  "version": {
+    "incremento": "patch",
+    "ficheros": ["package.json"]
+  },
+  "changelog": "CHANGELOG.md",
+  "turnos": null
+}
